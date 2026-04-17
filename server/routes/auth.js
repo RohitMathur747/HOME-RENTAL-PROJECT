@@ -34,6 +34,7 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
+
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     } else {
@@ -47,7 +48,7 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
         lastName,
         email,
         password: hashedPassword,
-        profileImage: profileImagePath,
+        profileImagePath: profileImagePath,
       });
 
       // Save user to database
