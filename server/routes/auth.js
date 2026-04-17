@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 
@@ -61,6 +61,32 @@ router.post("/register", upload.single("profileImage"), async (req, res) => {
     res
       .status(500)
       .json({ message: "Internal server error", error: err.message });
+  }
+});
+
+// user login
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    // Check if user exists
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({ message: "User Doesn't Exists" });
+    }
+    //compare the password with hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    //generate jwt token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    delete user.password; // remove password from user object before sending response
+
+    res.status(200).json({ token, user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
